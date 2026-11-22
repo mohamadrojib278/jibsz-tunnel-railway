@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Jibsz Tunneling / J1BTNL — Cyber Panel V4.4</title>
+  <link rel="stylesheet" href="/static/style.css?v={{ cache_v }}" />
+  <style>
+    :root {
+      --bg-obsidian: #040711;
+      --bg-panel: rgba(10, 15, 29, 0.86);
+      --bg-card: rgba(14, 21, 38, 0.88);
+      --bg-box: rgba(17, 25, 44, 0.78);
+      --border-soft: rgba(148, 163, 184, 0.13);
+      --border-cyan: rgba(0, 242, 254, 0.32);
+      --cyan: #00f2fe;
+      --blue: #38bdf8;
+      --indigo: #6366f1;
+      --purple: #a855f7;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-sub: #cbd5e1;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      width: 100%; max-width: 100vw; overflow-x: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-obsidian);
+      color: var(--text-main); min-height: 100vh; font-size: 13px; line-height: 1.4;
+    }
+
+    #constellation-canvas {
+      position: fixed; inset: 0; width: 100%; height: 100%;
+      z-index: 0; pointer-events: none;
+    }
+
+    .app-wrapper { position: relative; z-index: 1; min-height: 100vh; width: 100%; overflow-x: hidden; }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 900;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 10px 12px; background: rgba(4, 7, 17, 0.88);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .menu-pill-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 11px; border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(15, 23, 42, 0.92);
+      color: #e2e8f0; font-size: 0.74rem; font-weight: 700; cursor: pointer;
+    }
+    .topbar-title {
+      font-size: 1.02rem; font-weight: 800; color: #ffffff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .endpoint-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 999px;
+      background: rgba(16, 185, 129, 0.13);
+      border: 1px solid rgba(16, 185, 129, 0.38);
+      color: #34d399; font-family: monospace; font-size: 0.68rem; font-weight: 600;
+      max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      cursor: pointer;
+    }
+    .endpoint-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--emerald); box-shadow: 0 0 8px var(--emerald); flex-shrink: 0;
+    }
+
+    .drawer-backdrop {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(4px); z-index: 1000; display: none; opacity: 0; transition: opacity 0.2s ease;
+    }
+    .drawer-backdrop.open { display: block; opacity: 1; }
+    .sidebar-drawer {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 260px; max-width: 82vw; background: #060a15;
+      border-right: 1px solid var(--border-cyan); z-index: 1001;
+      transform: translateX(-105%); transition: transform 0.22s ease;
+      display: flex; flex-direction: column; padding: 15px 12px;
+      box-shadow: 14px 0 38px rgba(0, 0, 0, 0.85);
+    }
+    .sidebar-drawer.open { transform: translateX(0); }
+    .drawer-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-soft);
+    }
+    .drawer-logo { display: flex; align-items: center; gap: 10px; }
+    .drawer-logo-badge {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      color: #040711; font-weight: 900; font-size: 0.84rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .drawer-close-btn {
+      background: rgba(255,255,255,0.06); border: 1px solid var(--border-soft);
+      color: #cbd5e1; width: 30px; height: 30px; border-radius: 8px; cursor: pointer;
+    }
+    .drawer-nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .drawer-item {
+      display: flex; align-items: center; gap: 10px; width: 100%;
+      padding: 10px 12px; border-radius: 10px; border: 1px solid transparent;
+      background: transparent; color: #cbd5e1; font-size: 0.83rem;
+      font-weight: 600; text-align: left; cursor: pointer;
+    }
+    .drawer-item.active {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.16), rgba(168, 85, 247, 0.18));
+      border-color: rgba(0, 242, 254, 0.42); color: var(--cyan);
+    }
+    .drawer-footer {
+      padding-top: 12px; border-top: 1px solid var(--border-soft);
+      font-size: 0.71rem; color: var(--text-muted); text-align: center;
+    }
+    .drawer-footer a { color: var(--cyan); text-decoration: none; }
+
+    .container { width: 100%; max-width: 980px; margin: 0 auto; padding: 8px 10px 40px; }
+
+    .section-label {
+      font-size: 0.64rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.8px; color: #64748b; margin: 10px 0 6px 2px;
+    }
+
+    .user-stats-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+      margin-bottom: 12px;
+    }
+    .stat-card-v4 {
+      background: linear-gradient(160deg, rgba(13, 19, 36, 0.92), rgba(8, 12, 24, 0.92));
+      border: 1px solid rgba(148, 163, 184, 0.13);
+      border-radius: 12px; padding: 10px 9px 10px 11px;
+      position: relative; overflow: hidden;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+      min-width: 0;
+    }
+    .stat-card-v4::before {
+      content: ""; position: absolute; left: 0; top: 14%; bottom: 14%;
+      width: 3px; border-radius: 0 4px 4px 0;
+    }
+    .stat-card-v4.bar-cyan::before { background: var(--blue); box-shadow: 0 0 10px var(--blue); }
+    .stat-card-v4.bar-green::before { background: var(--emerald); box-shadow: 0 0 10px var(--emerald); }
+    .stat-card-v4.bar-red::before { background: var(--rose); box-shadow: 0 0 10px var(--rose); }
+    .stat-card-v4.bar-amber::before { background: var(--amber); box-shadow: 0 0 10px var(--amber); }
+    .stat-card-v4.bar-purple::before { background: var(--purple); box-shadow: 0 0 10px var(--purple); }
+
+    .sc-header {
+      font-size: 0.58rem; font-weight: 800; text-transform: uppercase;
+      color: #94a3b8; letter-spacing: 0.2px; display: flex; align-items: center; gap: 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .sc-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--emerald); display: inline-block; flex-shrink: 0; }
+    .sc-num {
+      font-size: 1.32rem; font-weight: 800; margin: 3px 0 2px; line-height: 1.1; color: #ffffff;
+    }
+    .sc-num.text-green { color: #10b981; }
+    .sc-num.text-red { color: #ef4444; }
+    .sc-foot {
+      font-size: 0.59rem; color: #64748b; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .sc-foot b { color: #94a3b8; font-weight: 700; }
+
+    .panel-box {
+      background: var(--bg-panel);
+      border: 1px solid rgba(148, 163, 184, 0.13);
+      border-radius: 14px; padding: 11px; margin-bottom: 12px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+      width: 100%; overflow: hidden;
+    }
+    /* SERVER NETWORK USAGE: 2 BARIS x 2 KOLOM (TODAY & THIS MONTH / THIS YEAR & ALL TIME) */
+    .net-usage-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+    }
+    .net-period-card {
+      background: rgba(14, 21, 38, 0.88);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 10px; padding: 9px 10px 9px 12px;
+      position: relative; overflow: hidden; min-width: 0;
+    }
+    .net-period-card::before {
+      content: ""; position: absolute; left: 0; top: 15%; bottom: 15%;
+      width: 3px; border-radius: 0 3px 3px 0;
+    }
+    .net-period-card.p-today::before { background: var(--emerald); }
+    .net-period-card.p-month::before { background: var(--amber); }
+    .net-period-card.p-year::before { background: var(--blue); }
+    .net-period-card.p-all::before { background: var(--purple); }
+
+    .np-label { font-size: 0.58rem; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 0.3px; }
+    .np-total { font-size: 1.02rem; font-weight: 800; margin: 2px 0 2px; }
+    .np-total.c-green { color: #10b981; }
+    .np-total.c-amber { color: #f59e0b; }
+    .np-total.c-blue { color: #38bdf8; }
+    .np-total.c-purple { color: #a855f7; }
+    .np-sub { font-size: 0.58rem; color: #64748b; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .np-sub .up-arrow { color: #38bdf8; }
+    .np-sub .dn-arrow { color: #10b981; }
+    .net-updated-foot {
+      text-align: right; font-size: 0.6rem; color: #475569; margin-top: 7px;
+    }
+
+    /* REGISTERED ACCOUNTS TOOLBAR & SINGLE-SCREEN 5-COLUMN TABLE (PERSIS SEPERTI TAMPILAN LAMA) */
+    .accounts-toolbar {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 8px; margin-bottom: 10px;
+    }
+    .accounts-toolbar-left {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .accounts-toolbar-title {
+      font-size: 0.92rem; font-weight: 800; color: #ffffff;
+    }
+    .accounts-toolbar-right {
+      display: flex; align-items: center; gap: 6px; flex: 1; justify-content: flex-end; min-width: 180px;
+    }
+    .filter-select, .search-input {
+      background: rgba(7, 11, 21, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #e2e8f0; border-radius: 7px; padding: 5px 8px;
+      font-size: 0.72rem; outline: none; min-height: 31px;
+    }
+    .filter-select { max-width: 125px; }
+    .search-input { flex: 1; min-width: 95px; max-width: 175px; }
+    .filter-select:focus, .search-input:focus { border-color: var(--cyan); }
+
+    /* Tabel 1 Layar Penuh Tanpa Geser Kanan-Kiri (5 Kolom: User, Status, Usage, Expired, Action) */
+    .accounts-table-wrap {
+      width: 100%; overflow-x: hidden;
+    }
+    table.acc-table {
+      width: 100%; min-width: 0; table-layout: fixed; border-collapse: collapse; font-size: 0.71rem;
+    }
+    table.acc-table th {
+      text-align: left; padding: 6px 4px; font-size: 0.6rem; font-weight: 700;
+      color: #64748b; border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    table.acc-table td {
+      padding: 8px 4px; vertical-align: middle;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    table.acc-table th.col-user, table.acc-table td.col-user { width: 29%; }
+    table.acc-table th.col-status, table.acc-table td.col-status { width: 21%; }
+    table.acc-table th.col-usage, table.acc-table td.col-usage { width: 20%; }
+    table.acc-table th.col-exp, table.acc-table td.col-exp { width: 15%; }
+    table.acc-table th.col-act, table.acc-table td.col-act { width: 15%; text-align: right; }
+
+    .user-cell-wrap {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0;
+    }
+    .user-name-line {
+      font-weight: 800; color: #f8fafc; font-size: 0.74rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+    }
+    .svc-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 1px 5px; border-radius: 4px; font-size: 0.54rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.2px;
+    }
+    .svc-xray {
+      background: rgba(139, 92, 246, 0.18); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.38);
+    }
+    .svc-ssh {
+      background: rgba(56, 189, 248, 0.16); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.38);
+    }
+
+    .status-stack {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    }
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 6px; border-radius: 5px; font-size: 0.58rem; font-weight: 700; white-space: nowrap;
+    }
+    .status-pill.st-active {
+      background: rgba(16, 185, 129, 0.14); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.32);
+    }
+    .status-pill.st-locked, .status-pill.st-expired {
+      background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.35);
+    }
+
+    .dev-mini {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.57rem; font-weight: 700; color: #94a3b8; white-space: nowrap;
+    }
+    .dev-mini.on { color: #60a5fa; }
+    .dev-dot-on { width: 5px; height: 5px; border-radius: 50%; background: #10b981; box-shadow: 0 0 5px #10b981; flex-shrink: 0; }
+    .dev-dot-off { width: 5px; height: 5px; border-radius: 50%; background: #64748b; flex-shrink: 0; }
+
+    .usage-cell-main { font-weight: 800; color: #f59e0b; font-size: 0.7rem; white-space: nowrap; }
+    .usage-cell-zero { font-weight: 600; color: #64748b; font-size: 0.69rem; }
+    .usage-cell-sub { font-size: 0.54rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .exp-cell-text { color: #cbd5e1; font-size: 0.64rem; white-space: nowrap; }
+
+    .btn-manage {
+      background: rgba(30, 41, 59, 0.88);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      color: #e2e8f0; padding: 5px 7px; border-radius: 6px;
+      font-size: 0.64rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+    }
+    .btn-manage:hover {
+      border-color: var(--cyan); color: var(--cyan);
+    }
+
+    /* MODAL POPUP MANAGE AKUN */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 2000;
+      background: rgba(2, 5, 12, 0.78);
+      backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+      display: none; align-items: center; justify-content: center;
+      padding: 12px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .manage-modal-card {
+      width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto;
+      background: linear-gradient(165deg, #0d1424 0%, #090e1a 100%);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 16px; padding: 15px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
+    }
+    .mm-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 11px;
+    }
+    .mm-title {
+      font-size: 1.02rem; font-weight: 800; color: #38bdf8;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mm-close {
+      background: transparent; border: none; color: #94a3b8;
+      font-size: 1.15rem; cursor: pointer; padding: 4px 8px; border-radius: 6px;
+    }
+    .mm-grid-2 {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px;
+      margin-bottom: 8px;
+    }
+    .mm-info-box {
+      background: rgba(17, 25, 44, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 9px; padding: 7px 9px; min-width: 0;
+    }
+    .mm-info-box.full-span {
+      grid-column: 1 / -1; margin-bottom: 8px;
+    }
+    .mm-label {
+      font-size: 0.6rem; font-weight: 700; color: #64748b; margin-bottom: 2px;
+    }
+    .mm-val {
+      font-size: 0.76rem; font-weight: 800; color: #f8fafc;
+      word-break: break-all; line-height: 1.3;
+    }
+    .mm-val.mono { font-family: monospace; font-size: 0.62rem; letter-spacing: -0.2px; }
+    .mm-val .tx-part { color: #38bdf8; }
+    .mm-val .rx-part { color: #10b981; }
+    .mm-ip-item {
+      color: #60a5fa; font-family: monospace; font-size: 0.72rem; font-weight: 700;
+      display: inline-block; margin-right: 10px;
+    }
+    .mm-divider-title {
+      font-size: 0.67rem; font-weight: 700; color: #94a3b8;
+      margin: 9px 0 7px; padding-bottom: 5px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    }
+    .mm-actions-row {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px;
+    }
+    .mm-btn {
+      padding: 7px 11px; border-radius: 7px; font-size: 0.71rem; font-weight: 700;
+      cursor: pointer; border: 1px solid transparent;
+      display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .mm-btn-copy {
+      background: rgba(56, 189, 248, 0.16); border-color: rgba(56, 189, 248, 0.42); color: #38bdf8;
+    }
+    .mm-btn-renew {
+      background: #10b981; border-color: #059669; color: #04130d; font-weight: 800;
+    }
+    .mm-btn-rules {
+      background: rgba(168, 85, 247, 0.18); border-color: rgba(168, 85, 247, 0.42); color: #d8b4fe;
+    }
+    .mm-btn-reset {
+      background: rgba(30, 41, 59, 0.9); border-color: rgba(148, 163, 184, 0.26); color: #e2e8f0;
+    }
+    .mm-btn-delete {
+      background: rgba(244, 63, 94, 0.18); border-color: rgba(244, 63, 94, 0.45); color: #fb7185;
+    }
+    .mm-subpanel {
+      margin-top: 9px; padding: 10px; border-radius: 10px;
+      background: rgba(7, 11, 21, 0.92); border: 1px solid rgba(56, 189, 248, 0.24);
+      display: none;
+    }
+    .mm-subpanel.active { display: block; }
+    .mm-copy-item { margin-bottom: 7px; }
+    .mm-copy-item:last-child { margin-bottom: 0; }
+    .mm-copy-item label {
+      display: block; font-size: 0.64rem; font-weight: 700; color: #94a3b8; margin-bottom: 3px;
+    }
+    .mm-copy-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 7px;
+      background: #040711; border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 7px; padding: 5px 8px;
+    }
+    .mm-copy-text {
+      font-family: monospace; font-size: 0.67rem; color: #cbd5e1;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;
+    }
+
+    .progress-track {
+      width: 100%; height: 6px; background: rgba(148, 163, 184, 0.16);
+      border-radius: 999px; overflow: hidden; margin-top: 5px;
+    }
+    .progress-fill {
+      height: 100%; background: linear-gradient(90deg, var(--cyan), var(--purple));
+      border-radius: 999px; transition: width 0.3s ease;
+    }
+
+    .admin-only { display: none !important; }
+    body.is-admin .admin-only { display: revert !important; }
+    body.is-admin .drawer-item.admin-only { display: flex !important; }
+    body.is-admin .mm-btn.admin-only { display: inline-flex !important; }
+    body.is-admin .public-only { display: none !important; }
+    .drawer-auth-box {
+      padding: 10px 0; margin-top: 8px; border-top: 1px solid var(--border-soft);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .admin-status-pill {
+      display: flex; align-items: center; justify-content: space-between; gap: 6px;
+      padding: 7px 10px; border-radius: 9px; font-size: 0.72rem; font-weight: 700;
+      background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+    }
+    .btn-admin-login {
+      width: 100%; padding: 9px 12px; border-radius: 9px; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; border: 1px solid rgba(0, 242, 254, 0.4);
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.16), rgba(168, 85, 247, 0.18));
+      color: #00f2fe; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-admin-logout {
+      width: 100%; padding: 8px 12px; border-radius: 9px; font-size: 0.76rem; font-weight: 700;
+      cursor: pointer; border: 1px solid rgba(244, 63, 94, 0.4);
+      background: rgba(244, 63, 94, 0.15); color: #fb7185;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .locked-field {
+      opacity: 0.65; cursor: not-allowed; background: rgba(15, 23, 42, 0.55) !important;
+    }
+    .lock-hint {
+      font-size: 0.58rem; color: #f59e0b; font-weight: 700; margin-left: 4px;
+    }
+    .readonly-notice {
+      font-size: 0.68rem; color: #94a3b8; background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.16); border-radius: 8px;
+      padding: 7px 9px; margin-top: 8px;
+    }
+  </style>
+</head>
+<body class="{% if is_admin %}is-admin{% endif %}">
+  <canvas id="constellation-canvas"></canvas>
+
+  <div class="app-wrapper">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button type="button" class="menu-pill-btn" onclick="toggleDrawer()">
+          <span>☰</span>
+          <span>Menu</span>
+        </button>
+        <h1 class="topbar-title" id="active-menu-title">Dashboard</h1>
+      </div>
+      <div class="endpoint-badge" onclick="copyActiveHostname()" title="Klik untuk menyalin hostname aktif">
+        <span class="endpoint-dot"></span>
+        <span id="top-endpoint-text">{{ active_host }}</span>
+      </div>
+    </header>
+
+    <div id="drawer-backdrop" class="drawer-backdrop" onclick="toggleDrawer(false)"></div>
+    <aside id="sidebar-drawer" class="sidebar-drawer">
+      <div class="drawer-header">
+        <div class="drawer-logo">
+          <div class="drawer-logo-badge">J1B</div>
+          <div>
+            <strong style="font-size:0.85rem;color:#fff;">JIBSZ TUNNEL V4.4</strong>
+            <div style="font-size:0.65rem;color:#94a3b8;">{{ domain }}</div>
+          </div>
+        </div>
+        <button type="button" class="drawer-close-btn" onclick="toggleDrawer(false)">✕</button>
+      </div>
+
+      <nav class="drawer-nav">
+        <button type="button" id="nav-dashboard" class="drawer-item active" onclick="switchMenuV2('dashboard', 'Dashboard')">
+          <span>📊</span>
+          <span>Dashboard</span>
+        </button>
+        <button type="button" id="nav-create" class="drawer-item" onclick="switchMenuV2('create', 'Buat Akun')">
+          <span>➕</span>
+          <span>Buat Akun</span>
+        </button>
+        <button type="button" id="nav-logs" class="drawer-item admin-only" onclick="switchMenuV2('logs', 'Log Server')">
+          <span>📜</span>
+          <span>Log Server</span>
+        </button>
+        <button type="button" id="nav-system" class="drawer-item" onclick="switchMenuV2('system', 'Sistem & Service')">
+          <span>🖥️</span>
+          <span>Sistem</span>
+        </button>
+        <button type="button" id="nav-settings" class="drawer-item admin-only" onclick="switchMenuV2('settings', 'Setting & Backup')">
+          <span>⚙️</span>
+          <span>Setting & Backup</span>
+        </button>
+      </nav>
+
+      <div class="drawer-auth-box">
+        <div id="admin-status-pill" class="admin-status-pill admin-only">
+          <span>🔓 Admin: <b id="admin-username-label">{{ admin_username or 'admin' }}</b></span>
+        </div>
+        <button type="button" class="btn-admin-login public-only" onclick="openAdminLoginModal()">
+          <span>🔐</span>
+          <span>Login Admin</span>
+        </button>
+        <button type="button" class="btn-admin-logout admin-only" onclick="logoutAdmin()">
+          <span>🚪</span>
+          <span>Logout Admin</span>
+        </button>
+      </div>
+
+      <div class="drawer-footer">
+        Credit Telegram: <a href="https://t.me/admj1btnl" target="_blank">@admj1btnl</a><br />
+        GitHub: <a href="https://github.com/mohamadrojib278" target="_blank">mohamadrojib278</a>
+      </div>
+    </aside>
+
+    <main class="container">
+      <!-- 1. VIEW DASHBOARD -->
+      <section id="pane-dashboard" class="tab-pane" style="display:block;">
+        <div class="section-label">USER STATISTICS</div>
+        <div class="user-stats-grid">
+          <div class="stat-card-v4 bar-cyan">
+            <div class="sc-header">TOTAL USERS <span class="sc-dot"></span></div>
+            <div class="sc-num" id="ust-total-num">0</div>
+            <div class="sc-foot" id="ust-total-sub">SSH: <b>0</b> • Xray: <b>0</b></div>
+          </div>
+          <div class="stat-card-v4 bar-green">
+            <div class="sc-header">USER ONLINE</div>
+            <div class="sc-num text-green" id="ust-online-num">0</div>
+            <div class="sc-foot" id="ust-online-sub">SSH: <b>0</b> • Xray: <b>0</b></div>
+          </div>
+          <div class="stat-card-v4 bar-red">
+            <div class="sc-header">USER BLOCK / EXP</div>
+            <div class="sc-num text-red" id="ust-block-num">0</div>
+            <div class="sc-foot" id="ust-block-sub">SSH: <b>0</b> • Xray: <b>0</b></div>
+          </div>
+        </div>
+
+        <div class="section-label">SERVER NETWORK USAGE</div>
+        <div class="panel-box">
+          <div class="net-usage-grid">
+            <div class="net-period-card p-today">
+              <div class="np-label">TODAY</div>
+              <div class="np-total c-green" id="bw-today-tot">0 B</div>
+              <div class="np-sub">
+                <span><b class="up-arrow">↑</b> <span id="bw-today-up">0 B</span></span>
+                <span><b class="dn-arrow">↓</b> <span id="bw-today-dn">0 B</span></span>
+              </div>
+            </div>
+            <div class="net-period-card p-month">
+              <div class="np-label">THIS MONTH</div>
+              <div class="np-total c-amber" id="bw-month-tot">0 B</div>
+              <div class="np-sub">
+                <span><b class="up-arrow">↑</b> <span id="bw-month-up">0 B</span></span>
+                <span><b class="dn-arrow">↓</b> <span id="bw-month-dn">0 B</span></span>
+              </div>
+            </div>
+            <div class="net-period-card p-year">
+              <div class="np-label">THIS YEAR</div>
+              <div class="np-total c-blue" id="bw-year-tot">0 B</div>
+              <div class="np-sub">
+                <span><b class="up-arrow">↑</b> <span id="bw-year-up">0 B</span></span>
+                <span><b class="dn-arrow">↓</b> <span id="bw-year-dn">0 B</span></span>
+              </div>
+            </div>
+            <div class="net-period-card p-all">
+              <div class="np-label">ALL TIME</div>
+              <div class="np-total c-purple" id="bw-all-tot">0 B</div>
+              <div class="np-sub">
+                <span><b class="up-arrow">↑</b> <span id="bw-all-up">0 B</span></span>
+                <span><b class="dn-arrow">↓</b> <span id="bw-all-dn">0 B</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="net-updated-foot" id="bw-updated-at">Updated: -</div>
+        </div>
+
+        <div class="section-label">REGISTERED ACCOUNTS</div>
+        <div class="panel-box">
+          <div class="accounts-toolbar">
+            <div class="accounts-toolbar-left">
+              <span class="accounts-toolbar-title">All Accounts</span>
+              <button type="button" class="btn btn-primary btn-sm" onclick="switchMenuV2('create', 'Buat Akun')">
+                + Buat Akun
+              </button>
+            </div>
+            <div class="accounts-toolbar-right">
+              <select id="filter-service-select" class="filter-select" onchange="renderRegisteredAccountsTable()">
+                <option value="all">All Services</option>
+                <option value="xray">All Xray</option>
+                <option value="vless">VLESS</option>
+                <option value="vmess">VMess</option>
+                <option value="trojan">Trojan</option>
+                <option value="ssh">SSH</option>
+              </select>
+              <input
+                type="text"
+                id="search-username-input"
+                class="search-input"
+                placeholder="Search user..."
+                oninput="renderRegisteredAccountsTable()"
+              />
+            </div>
+          </div>
+
+          <div class="accounts-table-wrap">
+            <table class="acc-table">
+              <thead>
+                <tr>
+                  <th class="col-user">User</th>
+                  <th class="col-status">Status</th>
+                  <th class="col-usage">Usage</th>
+                  <th class="col-exp">Expired</th>
+                  <th class="col-act">Action</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-users-tbody">
+                <tr>
+                  <td colspan="5" style="text-align:center;color:#64748b;padding:16px;">Memuat daftar akun...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. VIEW BUAT AKUN -->
+      <section id="pane-create" class="tab-pane" style="display:none;">
+        <div class="glass-card">
+          <div class="card-title">
+            <span>➕ Buat Akun Tunneling Baru</span>
+            <span class="badge badge-cli-only">🔒 Hapus Khusus Admin</span>
+          </div>
+          <form onsubmit="submitCreateAccount(event)">
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="acc-protocol">Protokol:</label>
+                <select id="acc-protocol" class="form-control" onchange="toggleProtocolPasswordField()">
+                  <option value="ssh">SSH WebSocket</option>
+                  <option value="vless">VLESS</option>
+                  <option value="vmess">VMess</option>
+                  <option value="trojan">Trojan</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="acc-username">Username:</label>
+                <input type="text" id="acc-username" class="form-control" placeholder="contoh: trial" required />
+              </div>
+            </div>
+
+            <div id="group-ssh-password" class="form-group" style="display:block;">
+              <label for="acc-secret">Password:</label>
+              <input type="text" id="acc-secret" class="form-control" placeholder="Masukkan password SSH" required />
+            </div>
+
+            <div class="grid-4" style="margin-bottom:12px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="acc-duration-mode">Tipe Durasi:</label>
+                <select id="acc-duration-mode" class="form-control">
+                  <option value="days">Hari</option>
+                  <option value="trial_hours">Trial (Jam)</option>
+                  <option value="trial_minutes">Trial (Menit)</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="acc-duration-val">Lama:</label>
+                <input type="number" id="acc-duration-val" class="form-control" value="30" min="1" required />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="acc-ip-limit">Devices Limit (IP): <span class="lock-hint public-only">🔒 Admin</span></label>
+                <input type="number" id="acc-ip-limit" class="form-control" value="{{ default_ip_limit }}" min="1" required />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="acc-quota-gb">Kuota GB (0=Unli): <span class="lock-hint public-only">🔒 Admin</span></label>
+                <input type="number" step="0.5" id="acc-quota-gb" class="form-control" value="{{ default_quota_gb }}" min="0" required />
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%;">
+              🚀 Buat Akun Sekarang
+            </button>
+          </form>
+        </div>
+
+        <div id="created-account-output" class="glass-card" style="display:none;"></div>
+
+        <div class="glass-card">
+          <div class="card-title">
+            <span>📋 Daftar Akun Terdaftar</span>
+            <button type="button" class="btn btn-primary btn-sm" onclick="loadAccountsData()">🔄 Refresh</button>
+          </div>
+          <div class="accounts-table-wrap">
+            <table class="acc-table">
+              <thead>
+                <tr>
+                  <th class="col-user">User</th>
+                  <th class="col-status">Status</th>
+                  <th class="col-usage">Usage</th>
+                  <th class="col-exp">Expired</th>
+                  <th class="col-act">Action</th>
+                </tr>
+              </thead>
+              <tbody id="crud-accounts-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. VIEW LOG SERVER -->
+      <section id="pane-logs" class="tab-pane" style="display:none;">
+        <div class="glass-card">
+          <div class="card-title">
+            <span>📜 Log Server Real-Time</span>
+            <div style="display:flex;gap:6px;">
+              <button type="button" class="btn btn-primary btn-sm" onclick="loadServerLogs()">🔄 Refresh</button>
+              <button type="button" class="btn btn-warning btn-sm" onclick="clearServerLogs()">🧹 Clear</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="log-source-select">Pilih Sumber Log:</label>
+            <select id="log-source-select" class="form-control" onchange="loadServerLogs()">
+              <option value="xray_access">Xray Access Log (VMess/VLESS/Trojan)</option>
+              <option value="nginx_access">Nginx Reverse Proxy Log (CF-Connecting-IP)</option>
+              <option value="ssh_ws">SSH WebSocket Proxy Log</option>
+              <option value="cloudflared">Cloudflare Tunnel (cloudflared) Log</option>
+              <option value="monitor">Daemon Monitor IP & Kuota Log</option>
+              <option value="xray_error">Xray Error Log</option>
+            </select>
+          </div>
+          <pre id="server-log-box" class="terminal-log">Memuat log server...</pre>
+        </div>
+      </section>
+
+      <!-- 4. VIEW SISTEM -->
+      <section id="pane-system" class="tab-pane" style="display:none;">
+        <div class="glass-card">
+          <div class="card-title">
+            <span>⚡ Resource Usage</span>
+            <button type="button" class="btn btn-primary btn-sm" onclick="loadOverviewAndSystem()">🔄 Refresh</button>
+          </div>
+          <div class="grid-4">
+            <div class="stat-card-v4 bar-cyan">
+              <div class="sc-header">CPU USAGE</div>
+              <div class="sc-num" id="sys-cpu-val" style="font-size:1.05rem;">0%</div>
+              <div class="progress-track"><div id="sys-cpu-bar" class="progress-fill" style="width:0%"></div></div>
+              <div class="sc-foot" id="sys-load-sub" style="margin-top:4px;">Load: -</div>
+            </div>
+            <div class="stat-card-v4 bar-purple">
+              <div class="sc-header">MEMORY (RAM)</div>
+              <div class="sc-num" id="sys-ram-val" style="font-size:1.05rem;">0 / 0 MB</div>
+              <div class="progress-track"><div id="sys-ram-bar" class="progress-fill" style="width:0%"></div></div>
+              <div class="sc-foot" style="margin-top:4px;">RAM Aktif</div>
+            </div>
+            <div class="stat-card-v4 bar-green">
+              <div class="sc-header">STORAGE (DISK)</div>
+              <div class="sc-num" id="sys-disk-val" style="font-size:1.05rem;">0 / 0 GB</div>
+              <div class="progress-track"><div id="sys-disk-bar" class="progress-fill" style="width:0%"></div></div>
+              <div class="sc-foot" style="margin-top:4px;">Partisi (/)</div>
+            </div>
+            <div class="stat-card-v4 bar-amber">
+              <div class="sc-header">SYSTEM UPTIME</div>
+              <div class="sc-num" id="sys-uptime-val" style="font-size:1.05rem;">-</div>
+              <div class="sc-foot" style="margin-top:4px;">Waktu Aktif</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="glass-card">
+            <div class="card-title"><span>ℹ️ System Informasi</span></div>
+            <table class="acc-table">
+              <tbody>
+                <tr><td style="color:#64748b;width:30%;">OS</td><td><strong id="sys-os-val">-</strong></td></tr>
+                <tr><td style="color:#64748b;">Kernel</td><td><code id="sys-kernel-val">-</code></td></tr>
+                <tr><td style="color:#64748b;">Hostname</td><td><code id="sys-host-val">-</code></td></tr>
+                <tr><td style="color:#64748b;">Endpoint</td><td><code id="sys-domain-val">-</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title"><span>🔧 Status Daemon Service</span></div>
+            <table class="acc-table">
+              <thead>
+                <tr>
+                  <th style="width:45%;">Service</th>
+                  <th style="width:30%;">Status</th>
+                  <th class="admin-only" style="width:25%;text-align:right;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="service-status-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. VIEW SETTING & BACKUP -->
+      <section id="pane-settings" class="tab-pane" style="display:none;">
+        <div class="grid-2">
+          <div class="glass-card">
+            <div class="card-title">
+              <span>🎨 Setting Banner SSH (/etc/jibsz/banner.txt)</span>
+            </div>
+            <div class="form-group">
+              <label for="ssh-banner-textarea">Kode HTML / Teks Banner SSH & Dropbear:</label>
+              <textarea id="ssh-banner-textarea" class="form-control" rows="6" style="font-family:monospace;font-size:0.74rem;"></textarea>
+            </div>
+            <button type="button" class="btn btn-primary" style="width:100%;" onclick="saveSshBanner()">
+              💾 Simpan & Terapkan Banner SSH
+            </button>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title">
+              <span>📦 Backup & Restore Akun / Konfigurasi</span>
+            </div>
+            <p style="font-size:0.73rem;color:#94a3b8;margin-bottom:10px;">
+              Cadangkan seluruh akun (SSH, VMess, VLESS, Trojan), database SQLite, dan banner ke arsip <code>.tar.gz</code>, atau pulihkan dari file backup.
+            </p>
+            <button type="button" class="btn btn-success" style="width:100%;margin-bottom:12px;" onclick="createNewBackup()">
+              ➕ Buat Backup Baru Sekarang
+            </button>
+
+            <form onsubmit="uploadAndRestoreBackup(event)" style="border-top:1px solid var(--border-soft);padding-top:10px;">
+              <div class="form-group">
+                <label for="restore-file-input">Upload & Restore File Backup (.tar.gz):</label>
+                <input type="file" id="restore-file-input" class="form-control" accept=".gz,.tar.gz" />
+              </div>
+              <button type="submit" class="btn btn-warning" style="width:100%;">
+                ♻️ Upload & Restore Backup
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-title">
+            <span>🗂️ Daftar Arsip Backup Tersimpan (/root/jibsz-backups)</span>
+          </div>
+          <div class="accounts-table-wrap">
+            <table class="acc-table">
+              <thead>
+                <tr>
+                  <th style="width:38%;">Nama File</th>
+                  <th style="width:16%;">Ukuran</th>
+                  <th style="width:24%;">Tanggal</th>
+                  <th style="width:22%;text-align:right;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="backup-list-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="glass-card">
+            <div class="card-title">
+              <span>🛡️ Default Limit Akun Publik (Non-Admin)</span>
+            </div>
+            <p style="font-size:0.72rem;color:#94a3b8;margin-bottom:10px;">
+              Pengguna publik tidak dapat mengubah Limit Device dan Kuota saat membuat akun. Nilai default di bawah otomatis diterapkan.
+            </p>
+            <div class="grid-2" style="margin-bottom:10px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="setting-default-ip">Default Devices Limit (IP):</label>
+                <input type="number" id="setting-default-ip" class="form-control" value="{{ default_ip_limit }}" min="1" />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="setting-default-quota">Default Kuota GB (0=Unli):</label>
+                <input type="number" step="0.5" id="setting-default-quota" class="form-control" value="{{ default_quota_gb }}" min="0" />
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary" style="width:100%;" onclick="savePublicDefaultLimits()">
+              💾 Simpan Default Limit Publik
+            </button>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title">
+              <span>🔑 Ganti Username & Password Admin</span>
+            </div>
+            <form onsubmit="submitChangeAdminPassword(event)">
+              <div class="form-group">
+                <label for="admin-new-user">Username Admin:</label>
+                <input type="text" id="admin-new-user" class="form-control" value="{{ admin_username or 'admin' }}" required />
+              </div>
+              <div class="grid-2" style="margin-bottom:10px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="admin-cur-pass">Password Saat Ini:</label>
+                  <input type="password" id="admin-cur-pass" class="form-control" placeholder="Password lama" required />
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="admin-new-pass">Password Baru:</label>
+                  <input type="password" id="admin-new-pass" class="form-control" placeholder="Min. 4 karakter" minlength="4" required />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-warning" style="width:100%;">
+                🔒 Perbarui Kredensial Admin
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL POPUP MANAGE AKUN -->
+  <div id="manage-modal-overlay" class="modal-overlay" onclick="handleModalOverlayClick(event)">
+    <div class="manage-modal-card" id="manage-modal-card">
+      <div class="mm-header">
+        <div class="mm-title">
+          <span id="mm-username">-</span>
+          <span id="mm-svc-badge" class="svc-badge svc-xray">-</span>
+        </div>
+        <button type="button" class="mm-close" onclick="closeManageModal()">✕</button>
+      </div>
+
+      <div class="mm-grid-2">
+        <div class="mm-info-box">
+          <div class="mm-label">Status</div>
+          <div class="mm-val" id="mm-status">Active</div>
+        </div>
+        <div class="mm-info-box">
+          <div class="mm-label">UUID / Password</div>
+          <div class="mm-val mono" id="mm-secret">-</div>
+        </div>
+        <div class="mm-info-box">
+          <div class="mm-label">Active Devices</div>
+          <div class="mm-val" id="mm-active-dev">0 Online</div>
+        </div>
+        <div class="mm-info-box">
+          <div class="mm-label">Devices Limit</div>
+          <div class="mm-val" id="mm-dev-limit">2</div>
+        </div>
+        <div class="mm-info-box">
+          <div class="mm-label">Bandwidth Limit</div>
+          <div class="mm-val" id="mm-bw-limit">Unlimited</div>
+        </div>
+        <div class="mm-info-box">
+          <div class="mm-label">Cumulative Usage</div>
+          <div class="mm-val" id="mm-cum-usage">0 B</div>
+        </div>
+        <div class="mm-info-box">
+          <div class="mm-label">Upload / Download</div>
+          <div class="mm-val" id="mm-up-down">
+            <span class="tx-part">↑ 0 B</span> / <span class="rx-part">↓ 0 B</span>
+          </div>
+        </div>
+        <div class="mm-info-box">
+          <div class="mm-label">Issued Date</div>
+          <div class="mm-val" id="mm-issued">-</div>
+        </div>
+        <div class="mm-info-box">
+          <div class="mm-label">Expired Date</div>
+          <div class="mm-val" id="mm-expired">-</div>
+        </div>
+        <div class="mm-info-box">
+          <div class="mm-label">Protocol</div>
+          <div class="mm-val" id="mm-protocols">-</div>
+        </div>
+        <div class="mm-info-box full-span">
+          <div class="mm-label">Active IPs (Unique)</div>
+          <div class="mm-val" id="mm-active-ips">• Offline</div>
+        </div>
+      </div>
+
+      <div class="mm-divider-title">Quick Action Commands</div>
+
+      <div class="mm-actions-row">
+        <button type="button" class="mm-btn mm-btn-copy" onclick="handleModalCopyConfig()">
+          Copy Config
+        </button>
+        <button type="button" class="mm-btn mm-btn-renew admin-only" onclick="toggleModalSubpanel('renew')">
+          Renew
+        </button>
+        <button type="button" class="mm-btn mm-btn-rules admin-only" onclick="toggleModalSubpanel('rules')">
+          Edit Rules
+        </button>
+        <button type="button" class="mm-btn mm-btn-reset admin-only" onclick="handleModalResetUsage()">
+          Reset Usage
+        </button>
+        <button type="button" class="mm-btn mm-btn-delete admin-only" onclick="handleModalDeleteAccount()">
+          Hapus Akun
+        </button>
+      </div>
+      <div class="readonly-notice public-only">
+        🔒 Mode Publik (Read-Only): Anda dapat melihat detail & menyalin config. Login Admin untuk mengubah limit device, kuota, renew, reset usage, atau hapus akun.
+      </div>
+
+      <div id="mm-subpanel-copy" class="mm-subpanel"></div>
+
+      <div id="mm-subpanel-renew" class="mm-subpanel">
+        <div class="form-group" style="margin-bottom:8px;">
+          <label for="mm-renew-days">Tambah Masa Aktif (Hari):</label>
+          <input type="number" id="mm-renew-days" class="form-control" value="30" min="1" />
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" style="width:100%;" onclick="submitModalRenew()">
+          ✅ Simpan Perpanjangan (Renew)
+        </button>
+      </div>
+
+      <div id="mm-subpanel-rules" class="mm-subpanel">
+        <div class="mm-grid-2" style="margin-bottom:8px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="mm-rule-ip">Devices Limit (IP):</label>
+            <input type="number" id="mm-rule-ip" class="form-control" value="4" min="1" />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="mm-rule-quota">Bandwidth GB (0=Unli):</label>
+            <input type="number" step="0.5" id="mm-rule-quota" class="form-control" value="0" min="0" />
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" style="width:100%;" onclick="submitModalEditRules()">
+          💾 Simpan Perubahan Rules
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL POPUP LOGIN ADMIN -->
+  <div id="admin-login-overlay" class="modal-overlay" onclick="handleAdminLoginOverlayClick(event)">
+    <div class="manage-modal-card" style="max-width:360px;">
+      <div class="mm-header">
+        <div class="mm-title">
+          <span>🔐 Login Admin</span>
+        </div>
+        <button type="button" class="mm-close" onclick="closeAdminLoginModal()">✕</button>
+      </div>
+      <p style="font-size:0.73rem;color:#94a3b8;margin-bottom:12px;">
+        Masuk sebagai Admin untuk mengelola Limit Device, Limit Kuota, Banner SSH, Log Server, Backup/Restore, dan Restart Service.
+      </p>
+      <form onsubmit="submitAdminLogin(event)">
+        <div class="form-group">
+          <label for="admin-login-user">Username Admin:</label>
+          <input type="text" id="admin-login-user" class="form-control" placeholder="admin" autocomplete="username" required />
+        </div>
+        <div class="form-group">
+          <label for="admin-login-pass">Password Admin:</label>
+          <input type="password" id="admin-login-pass" class="form-control" placeholder="Masukkan password" autocomplete="current-password" required />
+        </div>
+        <div id="admin-login-error" style="display:none;color:#fb7185;font-size:0.72rem;font-weight:700;margin-bottom:10px;"></div>
+        <button type="submit" id="btn-admin-login-submit" class="btn btn-primary" style="width:100%;">
+          🔓 Masuk sebagai Admin
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    window.INITIAL_AUTH_STATE = {
+      is_admin: {{ 'true' if is_admin else 'false' }},
+      username: {{ admin_username | tojson }},
+      default_ip_limit: {{ default_ip_limit }},
+      default_quota_gb: {{ default_quota_gb }}
+    };
+  </script>
+  <script src="/static/app.js?v={{ cache_v }}"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      initConstellationCanvas();
+      updateTopEndpointBadge();
+      applyAdminUiState(window.INITIAL_AUTH_STATE || { is_admin: false });
+      refreshAuthState();
+      toggleProtocolPasswordField();
+      loadOverviewAndSystem();
+      loadAccountsData();
+      setInterval(() => {
+        if (document.hidden) return;
+        const dashPane = document.getElementById("pane-dashboard");
+        const sysPane = document.getElementById("pane-system");
+        if (dashPane && dashPane.style.display !== "none") {
+          loadOverviewAndSystem();
+          loadAccountsData(true);
+        } else if (sysPane && sysPane.style.display !== "none") {
+          loadOverviewAndSystem();
+        }
+      }, 5000);
+    });
+  </script>
+</body>
+</html>
