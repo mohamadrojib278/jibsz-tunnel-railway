@@ -14,8 +14,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gettext-base procps cron supervisor \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Xray-core terbaru
-RUN bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install \
+# Install Xray-core terbaru (direct binary download; the install script requires systemd)
+RUN curl -fsSL -o /tmp/xray.zip https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip \
+    && mkdir -p /tmp/xray /usr/local/share/xray \
+    && unzip -q /tmp/xray.zip -d /tmp/xray \
+    && install -m 755 /tmp/xray/xray /usr/local/bin/xray \
+    && cp /tmp/xray/geoip.dat /tmp/xray/geosite.dat /usr/local/share/xray/ \
+    && rm -rf /tmp/xray /tmp/xray.zip \
     && mkdir -p /usr/local/etc/xray /var/log/jibsz /etc/jibsz /root/jibsz-backups /run/sshd
 
 # Install Cloudflared (Cloudflare Tunnel) terbaru
