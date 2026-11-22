@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Jibsz Tunneling / J1BTNL — Web Wizard Instalasi V4.3</title>
+  <link rel="stylesheet" href="/static/style.css?v={{ cache_v }}" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="drawer-logo-badge">J1B</div>
+      <div class="topbar-brand">
+        <h1>JIBSZ TUNNELING — WEB INSTALLER V4.3</h1>
+        <span>IP VPS: {{ public_ip }} : {{ panel_port }} • Credit: @admj1btnl</span>
+      </div>
+    </div>
+    <div>
+      <span class="badge badge-online">SETUP WIZARD</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="install-complete-banner" class="glass-card" style="display:none;border-color:#10b981;">
+      <h3 style="color:#34d399;margin-bottom:6px;">🎉 Seluruh Layanan Utama Berhasil Diinstal!</h3>
+      <p style="font-size:0.82rem;color:#cbd5e1;">
+        Keempat protokol utama (SSH, VLESS, VMess, dan Trojan) telah aktif. Mengalihkan otomatis ke
+        <strong>Dashboard Panel Utama V4.3</strong>...
+      </p>
+      <div style="margin-top:10px;">
+        <a href="/dashboard" class="btn btn-primary" style="width:100%;">Masuk ke Dashboard Utama Sekarang →</a>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="glass-card">
+        <div class="card-title">
+          <span>⚙️ 1. Pilih Arsitektur & Mode Instalasi</span>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:12px;">
+          <div id="mode-card-public" class="mode-card selected" onclick="selectInstallMode('public')">
+            <h3>🌐 Mode 1: VPS IP Public</h3>
+            <p>Nginx mendengarkan langsung di Port 80 (HTTP) & Port 443 (SSL Let's Encrypt acme.sh / Certbot).</p>
+          </div>
+          <div id="mode-card-nat" class="mode-card" onclick="selectInstallMode('nat')">
+            <h3>☁️ Mode 2: VPS NAT + CF Tunnel</h3>
+            <p>Menggunakan Cloudflare Zero Trust Tunnel Token menuju <code>http://localhost:80</code> (Nginx 127.0.0.1:80).</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="input-domain">Domain / Subdomain Tunneling:</label>
+          <input type="text" id="input-domain" class="form-control" placeholder="contoh: sg1.domainanda.com" value="{{ domain }}" />
+        </div>
+
+        <div class="form-group" id="group-email">
+          <label for="input-email">Email SSL Let's Encrypt (Mode VPS IP Public):</label>
+          <input type="email" id="input-email" class="form-control" placeholder="admin@domainanda.com" value="{{ acme_email }}" />
+        </div>
+
+        <div class="form-group" id="group-cf-token" style="display:none;">
+          <label for="input-cf-token">Cloudflare Zero Trust Tunnel Token (Mode VPS NAT):</label>
+          <input type="text" id="input-cf-token" class="form-control" placeholder="eyJhIjoi..." value="{{ cf_token }}" />
+        </div>
+
+        <div id="nat-hint-box" style="display:none;background:rgba(0,242,254,0.08);border:1px solid rgba(0,242,254,0.3);border-radius:10px;padding:10px;margin-bottom:12px;font-size:0.75rem;color:#cbd5e1;">
+          <strong>📌 Panduan Cloudflare Zero Trust Dashboard:</strong><br/>
+          Pastikan Public Hostname domain Anda di Cloudflare Zero Trust diarahkan ke Service Type <strong>HTTP</strong> dengan URL <strong><code>localhost:80</code></strong> (<code>http://localhost:80</code>).
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+          <button type="button" id="btn-start-install" class="btn btn-primary" style="width:100%;" onclick="startWizardInstallation()">
+            🚀 Mulai Instalasi Sekarang
+          </button>
+          <button type="button" id="btn-retry-all-failed" class="btn btn-warning" style="display:none;width:100%;" onclick="retrySingleComponent('all_failed')">
+            🔄 Retry Semua Komponen Gagal
+          </button>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="card-title">
+          <span>📡 2. Indikator Status Instalasi Real-Time</span>
+        </div>
+        <div id="components-list"></div>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <div class="card-title">
+        <span>🖥️ Live Log Instalasi (/var/log/jibsz/install.log)</span>
+      </div>
+      <pre id="install-log-box" class="terminal-log">Menunggu perintah Mulai Instalasi...</pre>
+    </div>
+  </main>
+
+  <script src="/static/app.js?v={{ cache_v }}"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const initialMode = "{{ install_mode }}" === "nat" ? "nat" : "public";
+      selectInstallMode(initialMode);
+      pollInstallationProgress();
+      setInterval(pollInstallationProgress, 2500);
+    });
+  </script>
+</body>
+</html>
